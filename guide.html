@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Kaise Banayein — Gemini API se, Social Media + Phone Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Mukta:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font-display:'Tiro Devanagari Hindi', Georgia, serif;
+    --font-body:'Mukta', system-ui, sans-serif;
+    --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+
+    --bg:#0a0f1a;
+    --bg-grad:#0d1524;
+    --surface:#111a2b;
+    --surface-elev:#16223a;
+    --surface2:#0e1726;
+    --border:rgba(255,255,255,0.08);
+    --border-bright:rgba(255,255,255,0.16);
+    --text:#e8eef7;
+    --text-dim:#8ba0bd;
+    --accent:#e0a63c;
+    --accent-dim:rgba(224,166,60,0.12);
+    --teal:#3fb6a8;
+    --teal-dim:rgba(63,182,168,0.12);
+    --green:#4fbf7f;
+    --green-dim:rgba(79,191,127,0.12);
+    --red:#ef6b6b;
+    --red-dim:rgba(239,107,107,0.12);
+    --shadow:0 4px 24px rgba(0,0,0,0.35);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f4ee;
+      --bg-grad:#fbf9f4;
+      --surface:#ffffff;
+      --surface-elev:#fffdf8;
+      --surface2:#f1ede3;
+      --border:rgba(20,30,50,0.12);
+      --border-bright:rgba(20,30,50,0.22);
+      --text:#16202f;
+      --text-dim:#5a6b82;
+      --accent:#a86f16;
+      --accent-dim:rgba(168,111,22,0.10);
+      --teal:#0f7a6d;
+      --teal-dim:rgba(15,122,109,0.10);
+      --green:#0f7a45;
+      --green-dim:rgba(15,122,69,0.10);
+      --red:#c0392b;
+      --red-dim:rgba(192,57,43,0.10);
+      --shadow:0 4px 20px rgba(20,30,50,0.08);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    color:var(--text);
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(ellipse at 15% -5%, var(--accent-dim) 0%, transparent 45%),
+      radial-gradient(ellipse at 90% 5%, var(--teal-dim) 0%, transparent 40%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-grad) 100%);
+    background-attachment:fixed;
+    line-height:1.7;
+    font-size:16.5px;
+    overflow-wrap:break-word;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size:26px 26px;opacity:0.5;
+  }
+
+  .wrap{
+    position:relative;z-index:1;
+    max-width:1400px;margin:0 auto;
+    padding:0 40px 80px;
+    display:grid;grid-template-columns:184px 1fr;gap:0 44px;
+  }
+  .main{min-width:0;}
+
+  /* ---- TOC ---- */
+  .toc{
+    position:sticky;top:24px;align-self:start;
+    grid-row:1 / -1;
+    max-height:calc(100dvh - 48px);overflow-y:auto;
+    padding:18px 0;
+  }
+  .toc::-webkit-scrollbar{width:3px;}
+  .toc::-webkit-scrollbar-thumb{background:var(--surface-elev);border-radius:2px;}
+  .toc-title{
+    font-family:var(--font-mono);font-size:9px;font-weight:700;
+    text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);
+    padding:0 0 10px;margin-bottom:8px;border-bottom:1px solid var(--border);
+  }
+  .toc a{
+    display:block;font-size:11.5px;color:var(--text-dim);text-decoration:none;
+    padding:5px 9px;border-radius:5px;border-left:2px solid transparent;
+    transition:all .15s;line-height:1.35;margin-bottom:2px;
+  }
+  .toc a:hover{color:var(--text);background:var(--surface2);}
+  .toc a.active{color:var(--text);border-left-color:var(--accent);background:var(--surface2);}
+
+  /* ---- Hero ---- */
+  .hero{padding:64px 0 30px;}
+  .hero__kicker{
+    font-family:var(--font-mono);font-size:11px;font-weight:600;
+    letter-spacing:2px;text-transform:uppercase;color:var(--accent);
+    margin-bottom:16px;display:flex;align-items:center;gap:9px;
+  }
+  .hero__kicker::before{content:'';width:26px;height:1px;background:var(--accent);}
+  .hero__title{
+    font-family:var(--font-display);
+    font-size:clamp(34px,5.6vw,60px);line-height:1.12;font-weight:400;
+    margin:0 0 18px;letter-spacing:-0.5px;
+  }
+  .hero__title em{font-style:italic;color:var(--accent);}
+  .hero__sub{font-size:19px;color:var(--text-dim);max-width:62ch;margin:0 0 26px;}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;}
+  .badge{
+    font-family:var(--font-mono);font-size:10.5px;font-weight:500;
+    padding:4px 11px;border-radius:20px;border:1px solid var(--border-bright);
+    color:var(--text-dim);background:var(--surface);
+  }
+  .badge--accent{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+  .badge--teal{color:var(--teal);border-color:var(--teal);background:var(--teal-dim);}
+
+  /* ---- Sections ---- */
+  .sec-head{
+    font-family:var(--font-display);
+    font-size:clamp(24px,3.2vw,34px);font-weight:400;line-height:1.2;
+    margin:64px 0 8px;padding-top:20px;scroll-margin-top:24px;
+    display:flex;align-items:baseline;gap:14px;
+  }
+  .sec-head .num{
+    font-family:var(--font-mono);font-size:13px;font-weight:600;
+    color:var(--accent);letter-spacing:1px;flex-shrink:0;
+  }
+  .sec-head::after{
+    content:'';flex:1;height:1px;background:var(--border);align-self:center;
+  }
+  .sec-sub{color:var(--text-dim);font-size:16px;margin:0 0 22px;max-width:70ch;}
+
+  p{margin:0 0 16px;}
+  .lead{font-size:19px;color:var(--text);}
+  strong{color:var(--text);font-weight:600;}
+  a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
+  a:hover{color:var(--teal);}
+
+  /* ---- Cards ---- */
+  .ve-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:18px 20px;position:relative;
+    animation:fadeUp .45s ease-out both;animation-delay:calc(var(--i,0)*0.05s);
+  }
+  .ve-card--accent{border-left:3px solid var(--accent);}
+  .ve-card--teal{border-left:3px solid var(--teal);}
+  .ve-card--hero{
+    background:linear-gradient(135deg, var(--surface-elev), var(--surface));
+    box-shadow:var(--shadow);border-color:var(--border-bright);
+  }
+  .card-label{
+    font-family:var(--font-mono);font-size:10px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--accent);
+    margin-bottom:8px;display:flex;align-items:center;gap:8px;
+  }
+  .card-label::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .card-label--teal{color:var(--teal);}
+  .card-label--green{color:var(--green);}
+  .card-label--red{color:var(--red);}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:22px 0;}
+  .card-grid > *{min-width:0;}
+  .ve-card h3{margin:0 0 8px;font-size:17px;font-weight:600;font-family:var(--font-body);}
+  .ve-card p{margin:0;font-size:14.5px;color:var(--text-dim);line-height:1.6;}
+  .ve-card ul{margin:10px 0 0;padding-left:0;list-style:none;}
+  .ve-card ul li{padding-left:16px;position:relative;font-size:14px;color:var(--text-dim);margin-bottom:5px;}
+  .ve-card ul li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700;}
+
+  /* ---- Flow (pipeline) ---- */
+  .flow{display:flex;flex-direction:column;gap:0;margin:26px 0;}
+  .flow__step{
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:15px 18px;display:flex;gap:15px;align-items:flex-start;
+  }
+  .flow__step .n{
+    font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent);
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--accent);
+    background:var(--accent-dim);display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .flow__step b{display:block;font-size:15.5px;margin-bottom:2px;}
+  .flow__step span{font-size:14px;color:var(--text-dim);}
+  .flow__arrow{display:flex;justify-content:center;padding:5px 0;color:var(--border-bright);}
+  .flow__arrow svg{width:20px;height:22px;fill:none;stroke:var(--border-bright);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---- Code ---- */
+  .code-file{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:18px 0;background:var(--surface);}
+  .code-file__header{
+    display:flex;align-items:center;gap:8px;padding:9px 15px;
+    background:var(--surface2);border-bottom:1px solid var(--border);
+    font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);
+  }
+  .code-file__header::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.7;}
+  .code-file__body{
+    font-family:var(--font-mono);font-size:12.8px;line-height:1.62;
+    padding:15px 17px;margin:0;background:var(--surface-elev);
+    white-space:pre-wrap;word-break:break-word;overflow-x:auto;color:#cdd9ea;
+  }
+  @media (prefers-color-scheme: light){ .code-file__body{color:#1e2b3d;} }
+  .code-file__body .cm{color:var(--text-dim);}
+  .code-file__body .kw{color:var(--accent);}
+  .code-file__body .st{color:var(--teal);}
+  code.inline{
+    font-family:var(--font-mono);font-size:12.5px;background:var(--accent-dim);
+    color:var(--accent);padding:1px 6px;border-radius:4px;
+  }
+
+  /* ---- Table ---- */
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.data-table{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.5;}
+  .data-table thead{position:sticky;top:0;z-index:2;}
+  .data-table th{
+    background:var(--surface-elev);font-family:var(--font-mono);font-size:10.5px;
+    font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);
+    text-align:left;padding:12px 15px;border-bottom:2px solid var(--border-bright);white-space:nowrap;
+  }
+  .data-table td{padding:12px 15px;border-bottom:1px solid var(--border);vertical-align:top;}
+  .data-table tbody tr:nth-child(even){background:var(--surface2);}
+  .data-table tbody tr:hover{background:var(--accent-dim);}
+  .data-table tbody tr:last-child td{border-bottom:none;}
+  .data-table code{font-family:var(--font-mono);font-size:11.5px;background:var(--accent-dim);color:var(--accent);padding:1px 5px;border-radius:3px;}
+  .data-table small{display:block;color:var(--text-dim);font-size:11.5px;margin-top:3px;}
+
+  /* ---- Callouts ---- */
+  .callout{padding:15px 19px;border-radius:10px;border-left:4px solid var(--accent);background:var(--accent-dim);margin:20px 0;}
+  .callout--warn{border-left-color:var(--red);background:var(--red-dim);}
+  .callout--ok{border-left-color:var(--green);background:var(--green-dim);}
+  .callout--info{border-left-color:var(--teal);background:var(--teal-dim);}
+  .callout__title{font-weight:600;margin-bottom:6px;font-size:15px;}
+  .callout--warn .callout__title{color:var(--red);}
+  .callout--ok .callout__title{color:var(--green);}
+  .callout--info .callout__title{color:var(--teal);}
+  .callout p:last-child{margin-bottom:0;}
+  .callout ul{padding-left:1.4em;margin:8px 0 0;}
+  .callout li{margin-bottom:4px;font-size:14.5px;}
+
+  /* ---- Timeline ---- */
+  .timeline{position:relative;margin:26px 0;padding-left:34px;}
+  .timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border-bright);}
+  .tl-item{position:relative;margin-bottom:20px;}
+  .tl-item::before{
+    content:'';position:absolute;left:-31px;top:6px;width:12px;height:12px;border-radius:50%;
+    background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 0 2px var(--accent-dim);
+  }
+  .tl-item h4{margin:0 0 3px;font-size:15.5px;font-weight:600;}
+  .tl-item p{margin:0;font-size:14px;color:var(--text-dim);}
+  .tl-item .when{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.5px;}
+
+  /* ---- KPI ---- */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:22px 0;}
+  .kpi-row > *{min-width:0;}
+  .kpi{background:var(--surface-elev);border:1px solid var(--border);border-radius:11px;padding:18px;box-shadow:var(--shadow);}
+  .kpi__v{font-family:var(--font-mono);font-size:26px;font-weight:600;letter-spacing:-.5px;color:var(--accent);line-height:1.1;}
+  .kpi__l{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:1.3px;color:var(--text-dim);margin-top:7px;}
+
+  .divider{text-align:center;margin:56px 0;color:var(--border-bright);font-size:15px;letter-spacing:14px;}
+
+  details.collapsible{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;background:var(--surface);}
+  details.collapsible summary{padding:13px 18px;font-family:var(--font-mono);font-size:12.5px;font-weight:600;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;color:var(--text);}
+  details.collapsible summary::-webkit-details-marker{display:none;}
+  details.collapsible summary::before{content:'▸';font-size:11px;color:var(--text-dim);transition:transform .15s;}
+  details.collapsible[open] summary::before{transform:rotate(90deg);}
+  details.collapsible .body{padding:16px 18px;border-top:1px solid var(--border);font-size:14px;line-height:1.65;}
+
+  .src-list{list-style:none;padding:0;margin:0;font-size:13.5px;}
+  .src-list li{padding:9px 0;border-bottom:1px solid var(--border);color:var(--text-dim);}
+  .src-list li:last-child{border-bottom:none;}
+  .src-list b{color:var(--text);display:block;font-weight:600;font-size:13.5px;}
+
+  footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--border);color:var(--text-dim);font-size:13px;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  }
+
+  @media (max-width:1000px){
+    .wrap{grid-template-columns:1fr;padding:0 22px 60px;gap:0;}
+    .toc{
+      position:sticky;top:0;z-index:200;max-height:none;
+      display:flex;gap:4px;align-items:center;overflow-x:auto;
+      -webkit-overflow-scrolling:touch;background:var(--bg);
+      border-bottom:1px solid var(--border);padding:10px 0;margin:0 -22px;
+      padding-left:22px;padding-right:22px;grid-row:auto;
+    }
+    .toc::-webkit-scrollbar{display:none;}
+    .toc-title{display:none;}
+    .toc a{white-space:nowrap;flex-shrink:0;border-left:none;border-bottom:2px solid transparent;border-radius:4px 4px 0 0;padding:6px 10px;font-size:11px;}
+    .toc a.active{border-left:none;border-bottom-color:var(--accent);background:var(--surface);}
+    .sec-head{scroll-margin-top:56px;margin-top:52px;}
+    .hero{padding:34px 0 20px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" id="toc">
+    <div class="toc-title">अनुक्रम</div>
+    <a href="#s1">1 · AI Agent क्या है</a>
+    <a href="#s2">2 · Gemini API सेटअप</a>
+    <a href="#s3">3 · Function Calling (दिल)</a>
+    <a href="#s4">4 · सोशल मीडिया कंट्रोल</a>
+    <a href="#s5">5 · फ़ोन कंट्रोल (Android)</a>
+    <a href="#s6">6 · "Bypass" की सच्चाई</a>
+    <a href="#s7">7 · 30-दिन रोडमैप</a>
+    <a href="#s8">8 · सेफ़्टी चेकलिस्ट</a>
+    <a href="#s9">9 · स्रोत</a>
+  </nav>
+
+  <div class="main">
+
+    <header class="hero">
+      <div class="hero__kicker">पूरी गाइड · स्टेप-बाय-स्टेप</div>
+      <h1 class="hero__title">AI Agent कैसे बनाएँ — <em>Gemini API</em> से, जो सोशल मीडिया और फ़ोन चलाए</h1>
+      <p class="hero__sub">एक ऐसा एजेंट जो आपकी बात समझे, वीडियो डिलीट करे, Instagram · YouTube · Facebook · X मैनेज करे, और आपके ही Android फ़ोन को कंट्रोल करे — सब कुछ <strong>ऑफ़िशियल API</strong> से, बिना किसी ख़तरनाक जुगाड़ के।</p>
+      <div class="badges">
+        <span class="badge badge--accent">Gemini API</span>
+        <span class="badge">Function Calling</span>
+        <span class="badge badge--teal">Official APIs</span>
+        <span class="badge">Android Automation</span>
+        <span class="badge">हिंदी गाइड</span>
+      </div>
+    </header>
+
+    <!-- ================= 1 ================= -->
+    <h2 class="sec-head" id="s1"><span class="num">01</span> AI Agent क्या है — और कैसे काम करता है</h2>
+    <p class="sec-sub">सबसे पहले यह समझ लो: एजेंट कोई जादू नहीं है। यह एक <strong>प्रोग्राम</strong> है जो Gemini जैसे मॉडल से बात करता है, और मॉडल के कहे मुताबिक़ असली काम (API कॉल, फ़ाइल, फ़ोन) करता है।</p>
+
+    <p class="lead">साधारण चैटबॉट सिर्फ़ जवाब लिखता है। <strong>Agent</strong> जवाब देने के साथ-साथ <em>काम भी करता है</em> — जैसे "मेरा पुराना वीडियो डिलीट कर दो" कहने पर असल में वीडियो डिलीट हो जाता है। इसके लिए मॉडल को <strong>tools (औज़ार)</strong> दिए जाते हैं, और मॉडल ख़ुद तय करता है कौन-सा औज़ार कब इस्तेमाल करना है। इसे <strong>Function Calling</strong> कहते हैं।</p>
+
+    <div class="flow">
+      <div class="flow__step"><span class="n">1</span><div><b>आपकी बात</b><span>"X पर आज का पोस्ट डाल दो और यह पुराना YouTube वीडियो हटा दो" — यह प्रॉम्प्ट मॉडल तक जाता है।</span></div></div>
+      <div class="flow__arrow"><svg viewBox="0 0 20 22"><path d="M10 2 L10 18 M5 13 L10 19 L15 13"/></svg></div>
+      <div class="flow__step"><span class="n">2</span><div><b>मॉडल सोचता है</b><span>Gemini समझता है कि इसके लिए दो औज़ार चाहिए: <code class="inline">post_to_x</code> और <code class="inline">delete_youtube_video</code> — और तर्क (arguments) बनाता है।</span></div></div>
+      <div class="flow__arrow"><svg viewBox="0 0 20 22"><path d="M10 2 L10 18 M5 13 L10 19 L15 13"/></svg></div>
+      <div class="flow__step"><span class="n">3</span><div><b>आपका कोड असली काम करता है</b><span>मॉडल ख़ुद कुछ नहीं करता — वह सिर्फ़ बताता है कि कौन-सा function चलाना है। असली API कॉल <strong>आपका प्रोग्राम</strong> करता है।</span></div></div>
+      <div class="flow__arrow"><svg viewBox="0 0 20 22"><path d="M10 2 L10 18 M5 13 L10 19 L15 13"/></svg></div>
+      <div class="flow__step"><span class="n">4</span><div><b>नतीजा वापस मॉडल को</b><span>API का जवाब ("वीडियो डिलीट हो गया", "पोस्ट लाइव है") मॉडल को भेजा जाता है।</span></div></div>
+      <div class="flow__arrow"><svg viewBox="0 0 20 22"><path d="M10 2 L10 18 M5 13 L10 19 L15 13"/></svg></div>
+      <div class="flow__step"><span class="n">5</span><div><b>आपको साफ़ जवाब</b><span>मॉडल सब जोड़कर कहता है: "हो गया — पोस्ट लाइव है और पुराना वीडियो हट गया।" यह चक्र दोबारा चल सकता है (loop)।</span></div></div>
+    </div>
+
+    <div class="callout callout--info">
+      <div class="callout__title">यही "loop" एजेंट की जान है</div>
+      <p>अगर आप Python में एक loop लिख सकते हैं, तो आप एक एजेंट बना सकते हैं। यह पूरा तंत्र इसी एक बात पर टिका है — मॉडल बताता है, आपका कोड चलाता है, नतीजा वापस मॉडल को जाता है।</p>
+    </div>
+
+    <!-- ================= 2 ================= -->
+    <h2 class="sec-head" id="s2"><span class="num">02</span> Gemini API सेटअप — पहला कदम</h2>
+    <p class="sec-sub">Gemini API का इस्तेमाल शुरू करने के लिए एक key चाहिए और एक छोटी Python लाइब्रेरी। Google AI Studio से key फ़्री में मिल जाती है।</p>
+
+    <div class="card-grid">
+      <div class="ve-card ve-card--accent" style="--i:0">
+        <div class="card-label">स्टेप 1</div>
+        <h3>API Key लो</h3>
+        <p>Google <strong>AI Studio</strong> (aistudio.google.com) पर जाओ, Google अकाउंट से लॉगिन करो, "Get API key" पर क्लिक करो। फ़्री tier में रोज़ कुछ हज़ार requests मिलती हैं — सीखने और छोटे काम के लिए काफ़ी है।</p>
+      </div>
+      <div class="ve-card ve-card--teal" style="--i:1">
+        <div class="card-label card-label--teal">स्टेप 2</div>
+        <h3>SDK इंस्टॉल करो</h3>
+        <p>टर्मिनल में एक कमांड। Python 3.10+ रखना।</p>
+      </div>
+      <div class="ve-card ve-card--accent" style="--i:2">
+        <div class="card-label">स्टेप 3</div>
+        <h3>Key सुरक्षित रखो</h3>
+        <p>Key को कभी कोड में सीधे मत लिखो। उसे environment variable में रखो — यही सुरक्षित तरीक़ा है।</p>
+      </div>
+    </div>
+
+    <div class="code-file">
+      <div class="code-file__header">terminal — सेटअप</div>
+      <pre class="code-file__body"><span class="cm"># लाइब्रेरी इंस्टॉल करो</span>
+pip install google-genai
+
+<span class="cm"># API key को environment variable में रखो (कोड में कभी नहीं!)</span>
+export GEMINI_API_KEY=<span class="st">"यहाँ-अपनी-key-डालो"</span></pre>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">कभी न करने वाली गलती</div>
+      <p>API key या password को सीधे कोड या किसी public GitHub पर मत डालो। हमेशा <code class="inline">.env</code> फ़ाइल या environment variable इस्तेमाल करो, और <code class="inline">.env</code> को <code class="inline">.gitignore</code> में डालो।</p>
+    </div>
+
+    <!-- ================= 3 ================= -->
+    <h2 class="sec-head" id="s3"><span class="num">03</span> एजेंट का दिल — Function Calling</h2>
+    <p class="sec-sub">अब सबसे ज़रूरी हिस्सा। हम एक छोटा-सा function बनाते हैं, उसकी "definition" मॉडल को देते हैं, और एक loop चलाते हैं जो मॉडल के कहे मुताबिक़ काम करता है।</p>
+
+    <p>Function Declaration मतलब मॉडल को यह बताना कि यह function क्या करता है, कौन-से इनपुट लेता है। मॉडल ख़ुद function नहीं चलाता — वह बस कहता है "यह function इन arguments के साथ चलाओ", और असली काम आपका कोड करता है।</p>
+
+    <div class="code-file">
+      <div class="code-file__header">agent.py — पूरा काम करने वाला ढाँचा</div>
+      <pre class="code-file__body"><span class="kw">from</span> google <span class="kw">import</span> genai
+<span class="kw">from</span> google.genai <span class="kw">import</span> types
+
+client = genai.Client()
+
+<span class="cm"># --- 1) असली काम करने वाला function (जैसे YouTube डिलीट) ---</span>
+<span class="kw">def</span> youtube_delete(video_id: str) -> dict:
+    <span class="st">"""एक YouTube वीडियो को डिलीट करता है (ऑफ़िशियल API से)।"""</span>
+    <span class="cm"># यहाँ YouTube Data API का DELETE कॉल होगा</span>
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"deleted"</span>, <span class="st">"video_id"</span>: video_id}
+
+<span class="cm"># --- 2) मॉडल को बताने के लिए definition ---</span>
+youtube_delete_tool = {
+    <span class="st">"type"</span>: <span class="st">"function"</span>,
+    <span class="st">"name"</span>: <span class="st">"youtube_delete"</span>,
+    <span class="st">"description"</span>: <span class="st">"किसी YouTube वीडियो को डिलीट करता है"</span>,
+    <span class="st">"parameters"</span>: {
+        <span class="st">"type"</span>: <span class="st">"object"</span>,
+        <span class="st">"properties"</span>: {
+            <span class="st">"video_id"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"description"</span>: <span class="st">"वीडियो का ID"</span>}
+        },
+        <span class="st">"required"</span>: [<span class="st">"video_id"</span>],
+    },
+}
+
+<span class="cm"># --- 3) मॉडल से पूछो ---</span>
+resp = client.models.generate_content(
+    model=<span class="st">"gemini-2.5-flash"</span>,
+    contents=<span class="st">"मेरा वीडियो abc123 डिलीट कर दो"</span>,
+    config=types.GenerateContentConfig(tools=[youtube_delete_tool]),
+)
+
+<span class="cm"># --- 4) अगर मॉडल ने function माँगा, तो चलाओ ---</span>
+<span class="kw">if</span> resp.function_calls:
+    <span class="kw">for</span> call <span class="kw">in</span> resp.function_calls:
+        print(<span class="st">"Tool:"</span>, call.name, <span class="st">"Args:"</span>, call.args)
+        <span class="cm"># यहाँ असली function चलाओगे, e.g. youtube_delete(**call.args)</span>
+<span class="kw">else</span>:
+    print(resp.text)</pre>
+    </div>
+
+    <div class="card-grid">
+      <div class="ve-card" style="--i:0">
+        <div class="card-label">ज़रूरी बात</div>
+        <h3>Parallel + Compositional</h3>
+        <p>Gemini एक ही बार में कई functions माँग सकता है (parallel), और एक function का नतीजा दूसरे में इस्तेमाल कर सकता है (compositional) — यानी असली मल्टी-स्टेप काम।</p>
+      </div>
+      <div class="ve-card" style="--i:1">
+        <div class="card-label card-label--teal">बेहतर तरीक़ा</div>
+        <h3>Loop में बदलो</h3>
+        <p>ऊपर वाले कोड को <code class="inline">while</code> loop में डालो: function चलाओ → नतीजा मॉडल को भेजो → मॉडल फिर सोचे। यही "agentic loop" है।</p>
+      </div>
+      <div class="ve-card" style="--i:2">
+        <div class="card-label card-label--green">सुरक्षा</div>
+        <h3>हर काम से पहले पूछो</h3>
+        <p>डिलीट/पोस्ट जैसे काम से पहले user से confirm लो। System instruction में लिखो: "बिना पुष्टि के कोई डिलीट या पोस्ट न करो।"</p>
+      </div>
+    </div>
+
+    <!-- ================= 4 ================= -->
+    <h2 class="sec-head" id="s4"><span class="num">04</span> सोशल मीडिया कंट्रोल — ऑफ़िशियल API</h2>
+    <p class="sec-sub">हर प्लेटफ़ॉर्म का अपना ऑफ़िशियल API है। इन्हीं से पोस्ट, शेड्यूल और डिलीट होता है — कोई "हैक" नहीं, बस सही OAuth और permission।</p>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>प्लेटफ़ॉर्म</th><th>API</th><th>क्या-क्या कर सकते हो</th><th>मुख्य शर्त</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>YouTube</strong></td>
+              <td><code>youtube/v3</code></td>
+              <td>वीडियो अपलोड, मेटाडेटा बदलना, वीडियो डिलीट करना</td>
+              <td>OAuth 2.0 scope चाहिए। डिलीट = 50 quota units; अपलोड = अलग bucket (रोज़ ~100)।</td>
+            </tr>
+            <tr>
+              <td><strong>Instagram</strong></td>
+              <td><code>graph.facebook.com</code></td>
+              <td>फ़ोटो / Reels / Story पब्लिश, कैरोसेल पोस्ट</td>
+              <td>सिर्फ़ <em>Business/Creator</em> अकाउंट। पहले media container बनाओ, फिर publish। 24 घंटे में 50 पोस्ट की सीमा।</td>
+            </tr>
+            <tr>
+              <td><strong>Facebook Page</strong></td>
+              <td><code>Pages API</code></td>
+              <td>Page पर पोस्ट, शेड्यूल, मीडिया, डिलीट</td>
+              <td>Page access token + <code>pages_manage_posts</code> permission। शेड्यूल 10 मिनट से 30 दिन के बीच।</td>
+            </tr>
+            <tr>
+              <td><strong>X (Twitter)</strong></td>
+              <td><code>api.x.com/2</code></td>
+              <td>ट्वीट, थ्रेड, मीडिया अपलोड</td>
+              <td>Free tier सिर्फ़ ~500 पोस्ट/महीना (read बहुत कम)। गंभीर काम के लिए Basic ($200/महीना) चाहिए।</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="code-file">
+      <div class="code-file__header">उदाहरण — YouTube वीडियो डिलीट (REST)</div>
+      <pre class="code-file__body"><span class="cm"># OAuth token मिलने के बाद:</span>
+DELETE https://www.googleapis.com/youtube/v3/videos?id=<span class="st">VIDEO_ID</span>
+Authorization: Bearer <span class="st">ACCESS_TOKEN</span>
+
+<span class="cm"># सफल होने पर 204 No Content मिलता है (कोई body नहीं)</span></pre>
+    </div>
+
+    <div class="code-file">
+      <div class="code-file__header">उदाहरण — Instagram पोस्ट (2 कदम)</div>
+      <pre class="code-file__body"><span class="cm"># कदम 1: media container बनाओ (image public URL पर होनी चाहिए)</span>
+POST /&lt;IG_ID&gt;/media
+  ?image_url=https://example.com/pic.jpg
+  &caption=मेरा नया पोस्ट
+  &access_token=<span class="st">TOKEN</span>
+
+<span class="cm"># कदम 2: container को publish करो</span>
+POST /&lt;IG_ID&gt;/media_publish
+  ?creation_id=<span class="st">CONTAINER_ID</span>
+  &access_token=<span class="st">TOKEN</span></pre>
+    </div>
+
+    <div class="callout">
+      <div class="callout__title">अपने एजेंट में कैसे जोड़ेंगे</div>
+      <p>हर प्लेटफ़ॉर्म के लिए एक-एक function बनाओ — जैसे <code class="inline">post_to_instagram(caption, image_url)</code>, <code class="inline">post_to_x(text)</code>, <code class="inline">delete_youtube(video_id)</code>। इन सबकी definitions Gemini को दो, और एजेंट आपकी बात से ख़ुद तय करेगा कि कौन-सा चलाना है।</p>
+    </div>
+
+    <!-- ================= 5 ================= -->
+    <h2 class="sec-head" id="s5"><span class="num">05</span> फ़ोन कंट्रोल — Android को सुरक्षित तरीक़े से चलाना</h2>
+    <p class="sec-sub">अपने ही फ़ोन को कंट्रोल करने के दो साफ़-सुथरे रास्ते हैं — दोनों बिना root, बिना कोई सिस्टम तोड़े। स्क्रीन ऑन/ऑफ़, टैप, ऐप खोलना-बंद करना — सब हो सकता है।</p>
+
+    <div class="card-grid">
+      <div class="ve-card ve-card--accent" style="--i:0">
+        <div class="card-label">तरीक़ा A</div>
+        <h3>Accessibility Service</h3>
+        <p>Android का ऑफ़िशियल तरीक़ा — इसी से बड़े ऑटोमेशन ऐप (Tasker, MacroDroid) UI पर क्लिक/टैप करते हैं। आप ख़ुद एक ऐप बनाकर इसे जोड़ सकते हैं, या तैयार ऐप इस्तेमाल कर सकते हैं।</p>
+      </div>
+      <div class="ve-card ve-card--teal" style="--i:1">
+        <div class="card-label card-label--teal">तरीक़ा B</div>
+        <h3>ADB Wireless Debugging</h3>
+        <p>Android 11+ में फ़ोन ख़ुद से ADB daemon चलाता है। आप फ़ोन से ही (या PC से) कमांड भेज सकते हो — टैप, keyevent, screenshot, ऐप बंद करना। <strong>root की ज़रूरत नहीं।</strong></p>
+      </div>
+      <div class="ve-card" style="--i:2">
+        <div class="card-label card-label--green">तरीक़ा C</div>
+        <h3>तैयार ऐप + AI</h3>
+        <p>MacroDroid / Tasker में वेबहुक और "AI LLM Query" action है। आपका Gemini एजेंट webhook भेजता है, और फ़ोन पर macro चल जाता है — बिना ऐप बनाए।</p>
+      </div>
+    </div>
+
+    <div class="code-file">
+      <div class="code-file__header">ADB — काम की कमांड (Wireless Debugging चालू होने पर)</div>
+      <pre class="code-file__body"><span class="cm"># फ़ोन से फ़ोन को जोड़ो (एक बार pairing code से)</span>
+adb pair 127.0.0.1:&lt;PAIRING_PORT&gt; &lt;6-अंकों-का-कोड&gt;
+adb connect 127.0.0.1:&lt;SESSION_PORT&gt;
+
+<span class="cm"># स्क्रीन ऑन/ऑफ़ और लॉक</span>
+adb shell input keyevent 26     <span class="cm"># Power (स्क्रीन ऑन/ऑफ़)</span>
+adb shell input keyevent 224    <span class="cm"># Wake up (स्क्रीन जगाओ)</span>
+adb shell input keyevent 223    <span class="cm"># Lock screen</span>
+
+<span class="cm"># टैप / स्वाइप / टाइप</span>
+adb shell input tap 540 1200
+adb shell input swipe 540 1800 540 900 300
+adb shell input text <span class="st">"Hello"</span>
+
+<span class="cm"># स्क्रीनशॉट और ऐप बंद करना</span>
+adb shell screencap -p /sdcard/s.png
+adb shell am force-stop com.instagram.android</pre>
+    </div>
+
+    <div class="callout callout--info">
+      <div class="callout__title">अपने Gemini एजेंट से फ़ोन चलाना</div>
+      <p>एक function बनाओ जो shell कमांड चलाए — जैसे <code class="inline">phone_command(cmd: str)</code>। Gemini आपकी बात ("फ़ोन की स्क्रीन बंद कर दो") को सही कमांड में बदल देगा। लेकिन सुरक्षा के लिए सिर्फ़ एक <strong>allowed-list</strong> रखो (सिर्फ़ कुछ तय कमांड ही चलें), कोई भी कमांड नहीं।</p>
+    </div>
+
+    <!-- ================= 6 ================= -->
+    <h2 class="sec-head" id="s6"><span class="num">06</span> "Android Bypass" की सच्चाई — इसकी ज़रूरत ही नहीं</h2>
+    <p class="sec-sub">आपने पूछा था कि "Android सिस्टम bypass कैसे करें"। ईमानदारी से: ऐसा करने की ज़रूरत नहीं है, और यह नुक़सानदेह है। आइए समझें क्यों।</p>
+
+    <p>जो भी काम आप चाहते हैं — स्क्रीन ऑन/ऑफ़, टैप, ऐप मैनेज करना — वह सब <strong>Accessibility Service</strong> और <strong>ADB</strong> से ऊपर वाले सेक्शन में ही हो जाता है, बिना कुछ "तोड़े"। "Bypass" यानी security तोड़ना या root करना, तब चाहिए जब आप <em>ऐसा काम</em> करना चाहो जो Android जान-बूझकर रोकता है (जैसे किसी और का लॉक तोड़ना, DRM हटाना)। ये काम:</p>
+
+    <div class="card-grid">
+      <div class="ve-card ve-card--accent" style="--i:0;border-left:3px solid var(--red)">
+        <div class="card-label card-label--red">ख़तरा</div>
+        <h3>Root करने के नुक़सान</h3>
+        <p>वारंटी ख़त्म, बैंकिंग/UPI ऐप्स काम करना बंद कर देते हैं, malware का डर बढ़ जाता है, OTA अपडेट टूट सकते हैं, और फ़ोन ब्रिक (बेकार) हो सकता है।</p>
+      </div>
+      <div class="ve-card ve-card--accent" style="--i:1;border-left:3px solid var(--red)">
+        <div class="card-label card-label--red">गैरक़ानूनी</div>
+        <h3>दूसरे के डिवाइस पर</h3>
+        <p>किसी और के फ़ोन/अकाउंट को बिना इजाज़त bypass करना या उसका डेटा निकालना अपराध है। हम इसमें किसी भी तरह की मदद नहीं कर सकते।</p>
+      </div>
+      <div class="ve-card ve-card--teal" style="--i:2">
+        <div class="card-label card-label--green">सही रास्ता</div>
+        <h3>ऑफ़िशियल = सुरक्षित</h3>
+        <p>Accessibility + ADB + ऑफ़िशियल APIs से वही सब मिलता है जो आप चाहते हैं, वह भी सुरक्षित और बिना रिस्क। यही "कोई ख़तरा न हो" वाली शर्त पूरी करता है।</p>
+      </div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">साफ़ बात</div>
+      <p>मैं Android की security bypass करने, किसी का लॉक तोड़ने, या ऐसी कोई चीज़ बनाने में मदद नहीं कर सकता जिससे किसी और को नुक़सान हो। लेकिन आपके <strong>अपने</strong> फ़ोन को सुरक्षित तरीक़े से ऑटोमेट करने का पूरा रास्ता — Accessibility Service, ADB, MacroDroid/Tasker + Gemini — ऊपर दिया है और वह काफ़ी शक्तिशाली है।</p>
+    </div>
+
+    <!-- ================= 7 ================= -->
+    <h2 class="sec-head" id="s7"><span class="num">07</span> 30-दिन का रोडमैप — शून्य से एजेंट तक</h2>
+    <p class="sec-sub">हर हफ़्ते एक-एक चीज़ जोड़ो। जल्दबाज़ी मत करो — हर हफ़्ते का एक साफ़ लक्ष्य है।</p>
+
+    <div class="timeline">
+      <div class="tl-item"><span class="when">हफ़्ता 1</span><h4>बुनियाद</h4><p>AI Studio से key लो, <code class="inline">google-genai</code> इंस्टॉल करो, एक साधारण "Hello" वाला Gemini कॉल चलाओ। समझो कि key कैसे सुरक्षित रखनी है।</p></div>
+      <div class="tl-item"><span class="when">हफ़्ता 2</span><h4>पहला function</h4><p>एक ऐसा function बनाओ जो कुछ असली करता हो — जैसे फ़ाइल पढ़ना/लिखना, या weather API। उसकी definition मॉडल को दो और function-calling चलाओ।</p></div>
+      <div class="tl-item"><span class="when">हफ़्ता 3</span><h4>एजेंट loop + confirm</h4><p>Function-calling को while loop में डालो। System instruction में सुरक्षा-नियम जोड़ो (किसी काम से पहले पूछो)। अब यह असली एजेंट है।</p></div>
+      <div class="tl-item"><span class="when">हफ़्ता 4</span><h4>सोशल मीडिया जोड़ो</h4><p>एक प्लेटफ़ॉर्म से शुरू करो (YouTube सबसे आसान)। OAuth करो, एक function बनाओ (जैसे अपना वीडियो डिलीट करना), और एजेंट से चलवाओ।</p></div>
+      <div class="tl-item"><span class="when">आगे</span><h4>फ़ोन कंट्रोल जोड़ो</h4><p>ADB wireless या MacroDroid webhook जोड़ो, एक allowed-list वाला <code class="inline">phone_command</code> function बनाओ। पहले छोटे काम (स्क्रीन ऑफ़) से टेस्ट करो।</p></div>
+    </div>
+
+    <!-- ================= 8 ================= -->
+    <h2 class="sec-head" id="s8"><span class="num">08</span> सेफ़्टी चेकलिस्ट — कोई ख़तरा न हो</h2>
+
+    <div class="card-grid">
+      <div class="ve-card" style="--i:0">
+        <div class="card-label card-label--green">करो</div>
+        <h3>ये ज़रूर करो</h3>
+        <ul>
+          <li>Key/secret को environment variable में रखो</li>
+          <li>हर डिलीट/पोस्ट से पहले user से confirm लो</li>
+          <li>phone_command में सिर्फ़ allowed-list कमांड</li>
+          <li>ऑफ़िशियल API और OAuth ही इस्तेमाल करो</li>
+          <li>छोटे टेस्ट अकाउंट पर पहले आज़माओ</li>
+        </ul>
+      </div>
+      <div class="ve-card" style="--i:1;border-left:3px solid var(--red)">
+        <div class="card-label card-label--red">मत करो</div>
+        <h3>इनसे बचो</h3>
+        <ul>
+          <li>कोड में API key hardcode मत करो</li>
+          <li>किसी और के डिवाइस/अकाउंट पर काम मत करो</li>
+          <li>Security bypass / root जैसी चीज़ें मत करो</li>
+          <li>बिना rate-limit वाले पोस्ट-लूप मत बनाओ</li>
+          <li>Telegram/WhatsApp के "एजेंट" लिंक पर भरोसा मत करो</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout callout--ok">
+      <div class="callout__title">याद रखो</div>
+      <p>सबसे शक्तिशाली और सुरक्षित एजेंट वही है जो ऑफ़िशियल APIs से बना हो, जिसमें user की मंज़ूरी का gate हो, और जिसके पास सीमित (limited) permission हो। "जुगाड़" नहीं, सही इंजीनियरिंग।</p>
+    </div>
+
+    <!-- ================= 9 ================= -->
+    <h2 class="sec-head" id="s9"><span class="num">09</span> स्रोत — जहाँ से जानकारी ली गई</h2>
+    <p class="sec-sub">यह गाइड इन ऑफ़िशियल और भरोसेमंद स्रोतों की लाइव रिसर्च पर आधारित है।</p>
+
+    <ul class="src-list">
+      <li><b>Google — Gemini API Function Calling</b>ai.google.dev/gemini-api/docs/function-calling</li>
+      <li><b>Google Codelabs — Gemini Function Calling</b>codelabs.developers.google.com/codelabs/gemini-function-calling</li>
+      <li><b>Phil Schmid — Building Agents with Gemini</b>philschmid.de/building-agents</li>
+      <li><b>YouTube Data API v3 — videos.delete</b>developers.google.com/youtube/v3/docs/videos/delete</li>
+      <li><b>YouTube Data API — Quota Calculator</b>developers.google.com/youtube/v3/determine_quota_cost</li>
+      <li><b>Meta — Instagram Content Publishing API</b>developers.facebook.com/documentation/instagram-platform/content-publishing</li>
+      <li><b>Meta — Facebook Pages API (Posts)</b>developers.facebook.com/documentation/pages-api/posts</li>
+      <li><b>X Developer Platform — Pricing</b>docs.x.com/x-api/getting-started/pricing</li>
+      <li><b>Android Developers — ADB &amp; Wireless Debugging</b>developer.android.com/tools/adb</li>
+      <li><b>MacroDroid Wiki — Accessibility &amp; Helper</b>macrodroidforum.com/wiki</li>
+      <li><b>ADB Handbook — input tap/swipe/keyevent</b>adbhandbook.com/blog/adb-shell-input-tap-swipe-text-keyevent</li>
+    </ul>
+
+    <footer>
+      <p>यह गाइड Raju के लिए तैयार की गई — AI Agent बनाने की पूरी, ईमानदार और सुरक्षित राह। हर दावा ऊपर दिए ऑफ़िशियल स्रोतों से जाँचा गया है। पेमेंट, rate-limit और API नियम समय-समय पर बदलते हैं, इसलिए लागू करने से पहले ऑफ़िशियल डॉक्स एक बार देख लें।</p>
+    </footer>
+
+  </div><!-- /main -->
+</div><!-- /wrap -->
+
+<script>
+(function() {
+  var toc = document.getElementById('toc');
+  if (!toc) return;
+  var links = toc.querySelectorAll('a');
+  var sections = [];
+  links.forEach(function(link){
+    var id = link.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, link: link });
+  });
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        links.forEach(function(l){ l.classList.remove('active'); });
+        var match = sections.find(function(s){ return s.el === entry.target; });
+        if (match) {
+          match.link.classList.add('active');
+          if (window.innerWidth <= 1000) {
+            match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  sections.forEach(function(s){ observer.observe(s.el); });
+  links.forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      var id = link.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '#' + id);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
